@@ -16,11 +16,14 @@
 
 package com.example.android.architecture.blueprints.todoapp.util
 
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
 val primaryDarkColor: Color = Color(0xFF263238)
 
@@ -34,6 +37,7 @@ val primaryDarkColor: Color = Color(0xFF263238)
  * @param modifier the modifier to apply to this layout.
  * @param content (slot) the main content to show
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoadingContent(
     loading: Boolean,
@@ -45,12 +49,27 @@ fun LoadingContent(
 ) {
     if (empty) {
         emptyContent()
-    } else {
-        SwipeRefresh(
-            state = rememberSwipeRefreshState(loading),
-            onRefresh = onRefresh,
+    }  else {
+        // Initialize the PullToRefresh state using remember
+        val pullToRefreshState = rememberPullToRefreshState()
+
+        PullToRefreshBox(
+            isRefreshing = loading,  // use the loading directly for refreshing state
+            onRefresh = onRefresh,  // define the onRefresh event
+            state = pullToRefreshState,  // pass the remembered state
             modifier = modifier,
-            content = content,
-        )
+            contentAlignment = Alignment.TopStart,
+            indicator = {
+                // Define the indicator for pull-to-refresh
+                Indicator(
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    isRefreshing = loading,
+                    state = pullToRefreshState
+                )
+            }
+        ) {
+            content()  // Main content
+        }
     }
+
 }
